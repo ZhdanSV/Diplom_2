@@ -24,12 +24,12 @@ public class UserAuthorizationTest {
     @Before
     public void setUp() {
         RestAssured.baseURI = "https://stellarburgers.nomoreparties.site/";
-        user = "{\"email\": \"test"+ random.nextInt(1000) +"@yandex.ru\",\n" +
+        user = "{\"email\": \"testUser"+ random.nextInt(10000) +"@yandex.ru\",\n" +
                 "\"password\": \"password\",\n" +
                 "\"name\": \"Username\"}";
     }
 
-    @Step("")
+    @Step("Create user")
     public Response creatingUser(String json) {
         return given()
                 .header("Content-type", "application/json")
@@ -37,7 +37,7 @@ public class UserAuthorizationTest {
                 .post("/api/auth/register");
     }
 
-    @Step("")
+    @Step("Get auth token")
     public String getAuthToken(Response response) {
         return response
                 .then()
@@ -47,7 +47,7 @@ public class UserAuthorizationTest {
                 .replace("Bearer ", "");
     }
 
-    @Step("")
+    @Step("Check authorisation user")
     public void checkLoginUser() {
         given()
                 .header("Content-type", "application/json")
@@ -59,7 +59,7 @@ public class UserAuthorizationTest {
                 .body("success", equalTo(true));
     }
 
-    @Step("")
+    @Step("Check authorisation user with invalid login-password pair")
     public void checkLoginUserWithInvalidLogPasPair() {
         given()
                 .header("Content-type", "application/json")
@@ -84,7 +84,7 @@ public class UserAuthorizationTest {
     @Test  //логин с неверным логином и паролем.
     @DisplayName("Create User with invalid login-password pair")
     public void loginUserWithInvalidLogPasPair() {
-        user = "{\"email\": \"test"+ random.nextInt(1000) +"@yandex.ru\",\n" +
+        user = "{\"email\": \"testUser"+ random.nextInt(1000) +"@yandex.ru\",\n" +
                 "\"password\": \"123456\",\n" +
                 "\"name\": \"Username\"}";
         Response response = creatingUser(user);

@@ -24,7 +24,7 @@ public class ChangeUserDataTest {
     @Before
     public void setUp() {
         RestAssured.baseURI = "https://stellarburgers.nomoreparties.site/";
-        user = "{\"email\": \"test"+ random.nextInt(1000) +"@yandex.ru\",\n" +
+        user = "{\"email\": \"testuser"+ random.nextInt(10000) +"@yandex.ru\",\n" +
                 "\"password\": \"password\",\n" +
                 "\"name\": \"Username\"}";
         newData = "{\"email\": \"narutoshippuuden1001@yandex.ru\",\n" +
@@ -32,7 +32,7 @@ public class ChangeUserDataTest {
                 "\"name\": \"Naruto\"}";
     }
 
-    @Step("")
+    @Step("Create user")
     public Response creatingUser(String json) {
         return given()
                 .header("Content-type", "application/json")
@@ -40,7 +40,7 @@ public class ChangeUserDataTest {
                 .post("/api/auth/register");
     }
 
-    @Step("")
+    @Step("Get auth token")
     public String getAuthToken(Response response) {
         return response
                 .then()
@@ -50,7 +50,7 @@ public class ChangeUserDataTest {
                 .replace("Bearer ", "");
     }
 
-    @Step("")
+    @Step("Check authorisation user")
     public void checkLoginUser() {
         given()
                 .header("Content-type", "application/json")
@@ -62,7 +62,7 @@ public class ChangeUserDataTest {
                 .body("success", equalTo(true));
     }
 
-    @Step("")
+    @Step("Change user data")
     public void changeUserData() {
         given()
                 .header("Content-type", "application/json")
@@ -76,7 +76,7 @@ public class ChangeUserDataTest {
                 .body("user.email", equalTo("narutoshippuuden1001@yandex.ru"));
     }
 
-    @Step("")
+    @Step("Check change user data without authorisation")
     public void checkChangeUserDataWithoutAuth() {
         given()
                 .header("Content-type", "application/json")

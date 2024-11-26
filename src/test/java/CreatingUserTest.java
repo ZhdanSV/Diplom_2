@@ -25,7 +25,7 @@ public class CreatingUserTest {
     @Before
     public void setUp() {
         RestAssured.baseURI = "https://stellarburgers.nomoreparties.site/";
-        user = "{\"email\": \"test"+ random.nextInt(1000) +"@yandex.ru\",\n" +
+        user = "{\"email\": \"testuser"+ random.nextInt(10000) +"@yandex.ru\",\n" +
             "\"password\": \"password\",\n" +
             "\"name\": \"Username\"}";
     }
