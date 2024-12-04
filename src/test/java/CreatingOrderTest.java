@@ -12,29 +12,33 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
-public class CreatingOrderTest {
+public class CreatingOrderTest extends BaseURI{
     /*
     POST https://stellarburgers.nomoreparties.site/api/orders
      */
 
-    private String user;
+    private UserData user;
+    private String email;
+    private String password;
+    private String name;
     Random random = new Random();
     private String authToken;
-    private String ingredients;
+    private String ingHash;
+    private String invalidHash;
 
     @Before
     public void setUp() {
-        RestAssured.baseURI = "https://stellarburgers.nomoreparties.site/";
-        user = "{\"email\": \"testuser"+ random.nextInt(10000) +"@yandex.ru\",\n" +
-                "\"password\": \"password\",\n" +
-                "\"name\": \"Username\"}";
-        ingredients = "{\n" +
-                "\"ingredients\": [\"61c0c5a71d1f82001bdaaa6d\",\"61c0c5a71d1f82001bdaaa6f\"]\n" +
-                "}\n";
+        email = "testuser"+ random.nextInt(10000) +"@yandex.ru";
+        password = "123456";
+        name = "Username";
+        user = new UserData(email, password, name);
+        ingHash = getIngredients();
+        invalidHash = "aaaaaaaaaaaaaa";
+
     }
 
     @Step("Create user")
-    public Response creatingUser(String json) {
+    public Response creatingUser(UserData json) {
         return given()
                 .header("Content-type", "application/json")
                 .body(json)
@@ -53,32 +57,10 @@ public class CreatingOrderTest {
 
     @Step("Check authorisation user")
     public void checkLoginUser() {
-        given()
-                .header("Content-type", "application/json")
-                .auth().oauth2(authToken)
-                .body(user)
-                .post("/api/auth/login")
+        login(user)
                 .then()
                 .statusCode(200)
                 .body("success", equalTo(true));
-    }
-
-    @Step("Create user with auth")
-    public Response createOrderWithAuth(String json) {
-        return given()
-                .header("Content-type", "application/json")
-                .body(json)
-                .auth().oauth2(authToken)
-                .post("/api/orders");
-    }
-
-    @Step("Create order without auth")
-    public Response createOrderWithoutAuth(String json) {
-        return given()
-                .header("Content-type", "application/json")
-                .body(json)
-//                .auth().oauth2(authToken)
-                .post("/api/orders");
     }
 
     @Step("Check response with auth")
@@ -116,8 +98,6 @@ public class CreatingOrderTest {
                 .then()
                 .statusCode(500);
     }
-
-
     /*
     Создание заказа:
      */
@@ -127,14 +107,14 @@ public class CreatingOrderTest {
         Response userResponse = creatingUser(user);
         authToken = getAuthToken(userResponse);
         checkLoginUser();
-        Response order = createOrderWithAuth(ingredients);
+        Response order = createOrderWithAuth(ingHash, authToken);
         checkResponseWithAuth(order);
     }
 
     @Test  //без авторизации
     @DisplayName("Create order without auth and with ingredients")
     public void createOrderWithoutAuthAndIngredients() {
-        Response order = createOrderWithoutAuth(ingredients);
+        Response order = createOrderWithoutAuth(ingHash);
         checkResponseWithoutAuth(order);
     }
 
@@ -142,30 +122,23 @@ public class CreatingOrderTest {
     @Test  //без ингредиентов
     @DisplayName("Create order without ingredients")
     public void createOrderWithoutIngredientsAndAuth() {
-        ingredients = "{}";
-        Response order = createOrderWithoutAuth(ingredients);
+        Response order = createOrderWithoutAuth();
         checkResponseWithoutIngredients(order);
     }
 
     @Test  //с неверным хешем ингредиентов
     @DisplayName("Create order with invalid hash of ingredients")
     public void createOrderWithInvalidIngredientsHash() {
-        ingredients = "{\"ingredients\": [\"60d3b41abdacab0026a733\",\"609646e4dc916e00276b2\"]}";
-        Response order = createOrderWithoutAuth(ingredients);
+        Response order = createOrderWithoutAuth(invalidHash);
         checkResponseWithInvalidHash(order);
     }
 
     @After //ручка для удаления заказа отсутствует в документации
     public void delUser() {
-        try {
-            given()
-                    .header("Content-type", "application/json")
-                    .auth().oauth2(authToken)
-                    .delete("/api/auth/user")
+        if (authToken!=null) {
+            deleteUser(authToken)
                     .then()
                     .statusCode(202);
-        } catch (IllegalArgumentException illegalArgumentException) {
-            return;
         }
     }
 }

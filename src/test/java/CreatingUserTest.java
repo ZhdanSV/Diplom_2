@@ -1,6 +1,5 @@
 import io.qameta.allure.Step;
 import io.qameta.allure.junit4.DisplayName;
-import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
@@ -12,33 +11,29 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
-public class CreatingUserTest {
+public class CreatingUserTest extends BaseURI {
     /*
     POST https://stellarburgers.nomoreparties.site/api/auth/register
      */
-
+    private UserData user;
+    private String email;
+    private String password;
+    private String name;
     private String authToken;
     Random random = new Random();
-    private String user;
 
 
     @Before
     public void setUp() {
-        RestAssured.baseURI = "https://stellarburgers.nomoreparties.site/";
-        user = "{\"email\": \"testuser"+ random.nextInt(10000) +"@yandex.ru\",\n" +
-            "\"password\": \"password\",\n" +
-            "\"name\": \"Username\"}";
+        email = "testuser"+ random.nextInt(10000) +"@yandex.ru";
+        password = "123456";
+        name = "Username";
+        user = new UserData(email,password,name);
     }
 
-    @Step("")
-    public Response createUserRequest(String json) {
-        return given()
-                .header("Content-type", "application/json")
-                .body(json)
-                .post("/api/auth/register");
-    }
 
-    @Step("")
+
+    @Step("get Auth token")
     public String getAuthToken(Response response) {
         return response
                 .then()
@@ -50,7 +45,7 @@ public class CreatingUserTest {
                 .replace("Bearer ", "");
     }
 
-    @Step("")
+    @Step("check response for duplicate creating user")
     public void checkResponseDuplicateCreating(Response response) {
         response
                 .then()
@@ -59,7 +54,7 @@ public class CreatingUserTest {
                 .body("message", equalTo("User already exists"));
     }
 
-    @Step("")
+    @Step("check Response Without Pass Or Email")
     public void checkResponseWithoutPassOrEmail(Response response) {
         response
                 .then()
@@ -73,42 +68,38 @@ public class CreatingUserTest {
     @Test //создать уникального пользователя;
     @DisplayName("Create User")
     public void creatingUser() {
-        Response response = createUserRequest(user);
+        Response response = creatingUser(user);
         authToken = getAuthToken(response);
-
     }
 
     @Test  //создать пользователя, который уже зарегистрирован;
     @DisplayName("Create duplicate User")
     public void creatingDuplicateUser() {
-        Response response = createUserRequest(user);
+        Response response = creatingUser(user);
         authToken = getAuthToken(response);
-        Response secondResponse = createUserRequest(user);
+        Response secondResponse = creatingUser(user);
         checkResponseDuplicateCreating(secondResponse);
     }
 
     @Test  //создать пользователя и не заполнить одно из обязательных полей.
     @DisplayName("Create User without password")
     public void creatingUserWithoutField() {
-        String invalidUser = "{\"email\": \"test"+ random.nextInt(1000) +"@yandex.ru\",\n" +
-
-                "\"name\": \"Username\"}";
-        Response response = createUserRequest(invalidUser);
+        UserData invalidUser = new UserData(email,"",name);
+        Response response = creatingUser(invalidUser);
         checkResponseWithoutPassOrEmail(response);
     }
 
     @After
     public void delUser() {
-        try {
+        if (authToken!=null) {
             given()
                     .header("Content-type", "application/json")
                     .auth().oauth2(authToken)
                     .delete("/api/auth/user")
                     .then()
                     .statusCode(202);
-        } catch (IllegalArgumentException illegalArgumentException) {
-            return;
         }
+
     }
 
 }

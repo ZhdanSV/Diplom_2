@@ -1,44 +1,34 @@
 import io.qameta.allure.Step;
 import io.qameta.allure.junit4.DisplayName;
-import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import java.util.Random;
-
-import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 
-public class ChangeUserDataTest {
+public class ChangeUserDataTest extends BaseURI {
     /*
     PATCH https://stellarburgers.nomoreparties.site/api/auth/user
      */
 
-    private String user;
-    private String newData;
+    private UserData user;
+    private UserData newData;
+    private String email;
+    private String password;
+    private String name;
     Random random = new Random();
     private String authToken;
 
     @Before
     public void setUp() {
-        RestAssured.baseURI = "https://stellarburgers.nomoreparties.site/";
-        user = "{\"email\": \"testuser"+ random.nextInt(10000) +"@yandex.ru\",\n" +
-                "\"password\": \"password\",\n" +
-                "\"name\": \"Username\"}";
-        newData = "{\"email\": \"narutoshippuuden1001@yandex.ru\",\n" +
-                "\"password\": \"password1\",\n" +
-                "\"name\": \"Naruto\"}";
+        email = "testuser"+ random.nextInt(10000) +"@yandex.ru";
+        password = "123456";
+        name = "Username";
+        user = new UserData(email, password, name);
+        newData = new UserData("a"+email, "aaa"+password, "Naruto");
     }
 
-    @Step("Create user")
-    public Response creatingUser(String json) {
-        return given()
-                .header("Content-type", "application/json")
-                .body(json)
-                .post("/api/auth/register");
-    }
 
     @Step("Get auth token")
     public String getAuthToken(Response response) {
@@ -50,39 +40,20 @@ public class ChangeUserDataTest {
                 .replace("Bearer ", "");
     }
 
-    @Step("Check authorisation user")
-    public void checkLoginUser() {
-        given()
-                .header("Content-type", "application/json")
-                .auth().oauth2(authToken)
-                .body(user)
-                .post("/api/auth/login")
-                .then()
-                .statusCode(200)
-                .body("success", equalTo(true));
-    }
 
     @Step("Change user data")
     public void changeUserData() {
-        given()
-                .header("Content-type", "application/json")
-                .auth().oauth2(authToken)
-                .body(newData)
-                .patch("/api/auth/user")
+        changeData(newData, authToken)
                 .then()
                 .statusCode(200)
                 .body("success", equalTo(true))
-                .body("user.name", equalTo("Naruto"))
-                .body("user.email", equalTo("narutoshippuuden1001@yandex.ru"));
+                .body("user.name", equalTo(newData.getName()))
+                .body("user.email", equalTo(newData.getEmail()));
     }
 
     @Step("Check change user data without authorisation")
     public void checkChangeUserDataWithoutAuth() {
-        given()
-                .header("Content-type", "application/json")
-//                .auth().oauth2(authToken)
-                .body(newData)
-                .patch("/api/auth/user")
+        changeData(newData)
                 .then()
                 .statusCode(401)
                 .body("success", equalTo(false))
@@ -94,7 +65,7 @@ public class ChangeUserDataTest {
     public void changeUserDataWithAuth() {
         Response response = creatingUser(user);
         authToken = getAuthToken(response);
-        checkLoginUser();
+        login(user);
         changeUserData();
     }
 
@@ -108,15 +79,10 @@ public class ChangeUserDataTest {
 
     @After
     public void delUser() {
-        try {
-            given()
-                    .header("Content-type", "application/json")
-                    .auth().oauth2(authToken)
-                    .delete("/api/auth/user")
+        if (authToken!=null) {
+            deleteUser(authToken)
                     .then()
                     .statusCode(202);
-        } catch (IllegalArgumentException illegalArgumentException) {
-            return;
         }
     }
 

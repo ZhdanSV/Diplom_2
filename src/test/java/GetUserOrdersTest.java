@@ -1,40 +1,39 @@
 import io.qameta.allure.Step;
 import io.qameta.allure.junit4.DisplayName;
-import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import java.util.Random;
-
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
-public class GetUserOrdersTest {
+public class GetUserOrdersTest extends BaseURI {
     /*
     GET https://stellarburgers.nomoreparties.site/api/orders
      */
 
-    private String user;
+    private UserData user;
+    private String email;
+    private String password;
+    private String name;
     Random random = new Random();
     private String authToken;
     private String ingredients;
+    private String ingHash;
 
     @Before
     public void setUp() {
-        RestAssured.baseURI = "https://stellarburgers.nomoreparties.site/";
-        user = "{\"email\": \"testuser"+ random.nextInt(10000) +"@yandex.ru\",\n" +
-                "\"password\": \"password\",\n" +
-                "\"name\": \"Username\"}";
-        ingredients = "{\n" +
-                "\"ingredients\": [\"61c0c5a71d1f82001bdaaa6d\",\"61c0c5a71d1f82001bdaaa6f\"]\n" +
-                "}\n";
+        email = "testuser"+ random.nextInt(10000) +"@yandex.ru";
+        password = "123456";
+        name = "Username";
+        user = new UserData(email, password, name);
+        ingHash = getIngredients();
     }
 
     @Step("Create user")
-    public Response creatingUser(String json) {
+    public Response creatingUser(UserData json) {
         return given()
                 .header("Content-type", "application/json")
                 .body(json)
@@ -75,10 +74,7 @@ public class GetUserOrdersTest {
 
     @Step("Check get user order with authorisation")
     public void checkGetUserOrdersWithAuth() {
-        given()
-                .header("Content-type", "application/json")
-                .auth().oauth2(authToken)
-                .get("/api/orders")
+        getUserOrders(authToken)
                 .then()
                 .statusCode(200)
                 .body("success", equalTo(true))
@@ -87,10 +83,7 @@ public class GetUserOrdersTest {
 
     @Step("Check get user orders without auth")
     public void checkGetUserOrdersWithoutAuth() {
-        given()
-                .header("Content-type", "application/json")
-//                .auth().oauth2(authToken)
-                .get("/api/orders")
+        getUserOrders()
                 .then()
                 .statusCode(401)
                 .body("success", equalTo(false))
@@ -106,7 +99,7 @@ public class GetUserOrdersTest {
         Response response = creatingUser(user);
         authToken = getAuthToken(response);
         checkLoginUser();
-        createOrderWithAuth(ingredients);
+        createOrderWithAuth(ingHash);
         checkGetUserOrdersWithAuth();
 
     }
@@ -117,21 +110,19 @@ public class GetUserOrdersTest {
         Response response = creatingUser(user);
         authToken = getAuthToken(response);
         checkLoginUser();
-        createOrderWithAuth(ingredients);
+        createOrderWithAuth(ingHash);
         checkGetUserOrdersWithoutAuth();
     }
 
     @After //ручка для удаления заказа отсутствует в документации
     public void delUser() {
-        try {
+        if (authToken!=null) {
             given()
                     .header("Content-type", "application/json")
                     .auth().oauth2(authToken)
                     .delete("/api/auth/user")
                     .then()
                     .statusCode(202);
-        } catch (IllegalArgumentException illegalArgumentException) {
-            return;
         }
     }
 
