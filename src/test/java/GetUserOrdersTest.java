@@ -5,7 +5,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import java.util.Random;
-import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
@@ -20,7 +19,6 @@ public class GetUserOrdersTest extends BaseURIAndAPIs {
     private String name;
     Random random = new Random();
     private String authToken;
-    private String ingredients;
     private String ingHash;
 
     @Before
@@ -30,14 +28,6 @@ public class GetUserOrdersTest extends BaseURIAndAPIs {
         name = "Username";
         user = new UserData(email, password, name);
         ingHash = getIngredients();
-    }
-
-    @Step("Create user")
-    public Response creatingUser(UserData json) {
-        return given()
-                .header("Content-type", "application/json")
-                .body(json)
-                .post("/api/auth/register");
     }
 
     @Step("Get auth token")
@@ -52,24 +42,10 @@ public class GetUserOrdersTest extends BaseURIAndAPIs {
 
     @Step("Check authorisation of user ")
     public void checkLoginUser() {
-        given()
-                .header("Content-type", "application/json")
-                .auth().oauth2(authToken)
-                .body(user)
-                .post("/api/auth/login")
+        login(user)
                 .then()
                 .statusCode(200)
                 .body("success", equalTo(true));
-    }
-
-
-    @Step("Create order with authorisation")
-    public void createOrderWithAuth(String json) {
-        given()
-                .header("Content-type", "application/json")
-                .body(json)
-                .auth().oauth2(authToken)
-                .post("/api/orders");
     }
 
     @Step("Check get user order with authorisation")
@@ -96,10 +72,9 @@ public class GetUserOrdersTest extends BaseURIAndAPIs {
     @Test  //авторизованный пользователь
     @DisplayName("Get authorized user orders")
     public void getAuthUserOrders() {
-        Response response = creatingUser(user);
-        authToken = getAuthToken(response);
+        authToken = getAuthToken(creatingUser(user));
         checkLoginUser();
-        createOrderWithAuth(ingHash);
+        createOrderWithAuth(ingHash,authToken);
         checkGetUserOrdersWithAuth();
 
     }
@@ -107,22 +82,16 @@ public class GetUserOrdersTest extends BaseURIAndAPIs {
     @Test  //неавторизованный пользователь
     @DisplayName("Get not authorized user orders")
     public void getNonAuthUserOrders() {
-        Response response = creatingUser(user);
-        authToken = getAuthToken(response);
+        authToken = getAuthToken(creatingUser(user));
         checkLoginUser();
-        createOrderWithAuth(ingHash);
+        createOrderWithAuth(ingHash, authToken);
         checkGetUserOrdersWithoutAuth();
     }
 
     @After //ручка для удаления заказа отсутствует в документации
     public void delUser() {
         if (authToken!=null) {
-            given()
-                    .header("Content-type", "application/json")
-                    .auth().oauth2(authToken)
-                    .delete("/api/auth/user")
-                    .then()
-                    .statusCode(202);
+            deleteUser(authToken);
         }
     }
 

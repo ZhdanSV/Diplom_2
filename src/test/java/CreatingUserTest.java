@@ -92,12 +92,7 @@ public class CreatingUserTest extends BaseURIAndAPIs {
     @After
     public void delUser() {
         if (authToken!=null) {
-            given()
-                    .header("Content-type", "application/json")
-                    .auth().oauth2(authToken)
-                    .delete("/api/auth/user")
-                    .then()
-                    .statusCode(202);
+            deleteUser(authToken);
         }
 
     }

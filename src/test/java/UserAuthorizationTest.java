@@ -80,9 +80,7 @@ public class UserAuthorizationTest extends BaseURIAndAPIs {
     @After
     public void delUser() {
         if (authToken!=null) {
-            deleteUser(authToken)
-                    .then()
-                    .statusCode(202);
+            deleteUser(authToken);
         }
     }
 }
