@@ -8,7 +8,7 @@ import java.util.Random;
 import static org.hamcrest.CoreMatchers.equalTo;
 
 
-public class UserAuthorizationTest extends BaseURI{
+public class UserAuthorizationTest extends BaseURIAndAPIs {
 
     /*
     POST https://stellarburgers.nomoreparties.site/api/auth/login

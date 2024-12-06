@@ -3,8 +3,15 @@ import io.restassured.response.Response;
 
 import static io.restassured.RestAssured.given;
 
-public class BaseURI {
-    public BaseURI() {
+public class BaseURIAndAPIs {
+    private final String CHANGE_USER_DATA = "/api/auth/user";
+    private final String LOGIN_USER = "/api/auth/login";
+    private final String USER_REGISTRATION = "/api/auth/register";
+    private final String DELETE_USER = "/api/auth/user";
+    private final String GET_INGREDIENTS = "api/ingredients";
+    private final String ORDERS = "/api/orders";
+
+    public BaseURIAndAPIs() {
         RestAssured.baseURI = "https://stellarburgers.nomoreparties.site/";
     }
 
@@ -13,14 +20,14 @@ public class BaseURI {
                 .header("Content-type", "application/json")
                 .auth().oauth2(authToken)
                 .body(data)
-                .patch("/api/auth/user");
+                .patch(CHANGE_USER_DATA);
     }
 
     public Response changeData(UserData data) {
         return given()
                 .header("Content-type", "application/json")
                 .body(data)
-                .patch("/api/auth/user");
+                .patch(CHANGE_USER_DATA);
     }
 
     public Response login(UserData user) {
@@ -28,27 +35,27 @@ public class BaseURI {
                 .header("Content-type", "application/json")
 
                 .body(user)
-                .post("/api/auth/login");
+                .post(LOGIN_USER);
     }
 
     public Response creatingUser(UserData user) {
         return given()
                 .header("Content-type", "application/json")
                 .body(user)
-                .post("/api/auth/register");
+                .post(USER_REGISTRATION);
     }
 
     public Response deleteUser(String authToken) {
         return given()
                 .header("Content-type", "application/json")
                 .auth().oauth2(authToken)
-                .delete("/api/auth/user");
+                .delete(DELETE_USER);
     }
 
     public String getIngredients() {
         return given()
                 .header("Content-type", "application/json")
-                .get("api/ingredients")
+                .get(GET_INGREDIENTS)
                 .then()
                 .extract()
                 .path("data[1]._id")
@@ -63,7 +70,7 @@ public class BaseURI {
                 .header("Content-type", "application/json")
                 .body(ingredients)
                 .auth().oauth2(authToken)
-                .post("/api/orders");
+                .post(ORDERS);
     }
 
     public Response createOrderWithoutAuth(String ingHash) {
@@ -73,26 +80,26 @@ public class BaseURI {
         return given()
                 .header("Content-type", "application/json")
                 .body(ingredients)
-                .post("/api/orders");
+                .post(ORDERS);
     }
 
     public Response createOrderWithoutAuth() {
         return given()
                 .header("Content-type", "application/json")
-                .post("/api/orders");
+                .post(ORDERS);
     }
 
     public Response getUserOrders() {
         return given()
                 .header("Content-type", "application/json")
-                .get("/api/orders");
+                .get(ORDERS);
     }
 
     public Response getUserOrders(String authToken) {
         return given()
                 .header("Content-type", "application/json")
                 .auth().oauth2(authToken)
-                .get("/api/orders");
+                .get(ORDERS);
     }
 
 }

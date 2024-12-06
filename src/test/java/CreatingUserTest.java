@@ -11,7 +11,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
-public class CreatingUserTest extends BaseURI {
+public class CreatingUserTest extends BaseURIAndAPIs {
     /*
     POST https://stellarburgers.nomoreparties.site/api/auth/register
      */

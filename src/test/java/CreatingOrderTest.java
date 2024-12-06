@@ -1,6 +1,5 @@
 import io.qameta.allure.Step;
 import io.qameta.allure.junit4.DisplayName;
-import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
@@ -12,7 +11,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
-public class CreatingOrderTest extends BaseURI{
+public class CreatingOrderTest extends BaseURIAndAPIs {
     /*
     POST https://stellarburgers.nomoreparties.site/api/orders
      */

@@ -9,7 +9,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
-public class GetUserOrdersTest extends BaseURI {
+public class GetUserOrdersTest extends BaseURIAndAPIs {
     /*
     GET https://stellarburgers.nomoreparties.site/api/orders
      */
