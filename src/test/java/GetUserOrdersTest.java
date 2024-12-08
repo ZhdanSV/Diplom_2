@@ -30,16 +30,6 @@ public class GetUserOrdersTest extends BaseURIAndAPIs {
         ingHash = getIngredients();
     }
 
-    @Step("Get auth token")
-    public String getAuthToken(Response response) {
-        return response
-                .then()
-                .extract()
-                .path("accessToken")
-                .toString()
-                .replace("Bearer ", "");
-    }
-
     @Step("Check authorisation of user ")
     public void checkLoginUser() {
         login(user)

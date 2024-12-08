@@ -2,14 +2,15 @@ import io.restassured.RestAssured;
 import io.restassured.response.Response;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.CoreMatchers.notNullValue;
 
 public class BaseURIAndAPIs {
-    private final String CHANGE_USER_DATA = "/api/auth/user";
-    private final String LOGIN_USER = "/api/auth/login";
-    private final String USER_REGISTRATION = "/api/auth/register";
-    private final String DELETE_USER = "/api/auth/user";
-    private final String GET_INGREDIENTS = "api/ingredients";
-    private final String ORDERS = "/api/orders";
+    private static final String CHANGE_USER_DATA = "/api/auth/user";
+    private static final String LOGIN_USER = "/api/auth/login";
+    private static final String USER_REGISTRATION = "/api/auth/register";
+    private static final String DELETE_USER = "/api/auth/user";
+    private static final String GET_INGREDIENTS = "api/ingredients";
+    private static final String ORDERS = "/api/orders";
 
     public BaseURIAndAPIs() {
         RestAssured.baseURI = "https://stellarburgers.nomoreparties.site/";
@@ -100,6 +101,17 @@ public class BaseURIAndAPIs {
                 .header("Content-type", "application/json")
                 .auth().oauth2(authToken)
                 .get(ORDERS);
+    }
+
+    public String getAuthToken(Response response) {
+        return response
+                .then()
+                .statusCode(200)
+                .body("success", notNullValue())
+                .extract()
+                .path("accessToken")
+                .toString()
+                .replace("Bearer ", "");
     }
 
 }

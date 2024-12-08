@@ -32,19 +32,6 @@ public class CreatingUserTest extends BaseURIAndAPIs {
     }
 
 
-
-    @Step("get Auth token")
-    public String getAuthToken(Response response) {
-        return response
-                .then()
-                .statusCode(200)
-                .body("success", notNullValue())
-                .extract()
-                .path("accessToken")
-                .toString()
-                .replace("Bearer ", "");
-    }
-
     @Step("check response for duplicate creating user")
     public void checkResponseDuplicateCreating(Response response) {
         response

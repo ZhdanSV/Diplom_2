@@ -30,17 +30,6 @@ public class ChangeUserDataTest extends BaseURIAndAPIs {
     }
 
 
-    @Step("Get auth token")
-    public String getAuthToken(Response response) {
-        return response
-                .then()
-                .extract()
-                .path("accessToken")
-                .toString()
-                .replace("Bearer ", "");
-    }
-
-
     @Step("Change user data")
     public void changeUserData() {
         changeData(newData, authToken)
